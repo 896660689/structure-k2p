@@ -1,0 +1,95 @@
+#修改TNAME: K2P-5.0 中的K2P-5.0为你需要编译的型号，注意名称要与configs/templates/目录下的名字相同
+name: Build Padavan-K2P
+
+on: 
+  release:
+    types: [published]
+  push:
+    tags:
+    - 'v*'
+  #  branches: 
+    - K2P
+#  schedule:
+#    - cron: 0 8 * * 5
+ # watch:
+ #   types: [started]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Initialization environment
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        #sudo apt-get update
+        sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd \
+        cpio git python-docutils gettext automake autopoint texinfo build-essential help2man \
+        pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev
+    - name: Clone source code
+      run: |
+        git clone --depth=3 --branch=ad https://github.com/896660689/rt-n56u.git /opt/rt-n56u
+        cd /opt/rt-n56u/toolchain-mipsel
+        wget https://github.com/896660689/padavan-toolchain/releases/download/1214/toolchain-3.4.x.tar.gz
+        tar -zxvf toolchain-3.4.x.tar.gz -C /opt/rt-n56u/toolchain-mipsel
+        mkdir -p /opt/images/
+    - name: Build Firmware
+      env:
+        TNAME: K2P
+      run: |
+        cd /opt/rt-n56u/trunk
+        if [ ! -f configs/templates/$TNAME.config ] ; then
+        echo "configs/templates/$TNAME.config not found "
+        exit 1
+        fi
+        cp -f configs/templates/$TNAME.config .config
+        ################################################################################################
+        #因不同型号配置功能不一样，所以先把配置项删除，如果你自己要添加其他的，也要写上删除这一条，切记！！！
+        ################################################################################################
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_SMBD_SYSLOG/d' .config #删除配置项
+        ######################################################################
+        #以下选项是定义你需要的功能（y=集成,n=忽略），重新写入到.config文件
+        ######################################################################
+        echo "CONFIG_FIRMWARE_INCLUDE_LANG_CN=y" >> .config
+        echo "CONFIG_FIRMWARE_ENABLE_IPV6=y" >> .config
+        echo "CONFIG_FIRMWARE_ENABLE_EXFAT=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_IPSET=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_TCPDUMP=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_HDPARM=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_SMBD36=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_RPL2TP=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_EAP_PEAP=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_DDNS_SSL=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_HTTPS=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_SFTP=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_OPENSSH=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_OPENVPN=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_OPENSSL_EC=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_XUPNPD=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_FFMPEG_NEW=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_CURL=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_ADBYBY=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_NAPT66=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_SSSERVER=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_SOCAT=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_ADBYBY=y" >> .config
+        #########################################################################################
+        #自定义添加其它功能请参考源码configs/templates/目录下的config文件。按照上面的格式添加即可
+        #格式如下：
+        #sed -i '/自定义项/d' .config
+        #echo "自定义项=y" >> .config
+        #########################################################################################
+        sudo ./clear_tree
+        sudo ./build_firmware_modify $TNAME
+        sudo mv -f images/*.trx /opt/images/
+    - name : Upload packages
+      uses: actions/upload-artifact@master
+      if: always()
+      with:
+        name: Padavan-K2P
+        path: /opt/images
