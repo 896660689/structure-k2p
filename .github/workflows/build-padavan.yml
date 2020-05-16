@@ -8,7 +8,7 @@ on:
     tags:
     - 'v*'
   #  branches: 
-    - K2P
+    - ad
 #  schedule:
 #    - cron: 0 8 * * 5
  # watch:
@@ -33,7 +33,7 @@ jobs:
       run: |
         git clone --depth=3 --branch=ad https://github.com/896660689/rt-n56u.git /opt/rt-n56u
         cd /opt/rt-n56u/toolchain-mipsel
-        wget https://github.com/896660689/padavan-toolchain/releases/download/1214/toolchain-3.4.x.tar.gz
+        wget https://github.com/896660689/padavan-toolchain/releases/download/0509/toolchain-3.4.x.tar.gz
         tar -zxvf toolchain-3.4.x.tar.gz -C /opt/rt-n56u/toolchain-mipsel
         mkdir -p /opt/images/
     - name: Build Firmware
