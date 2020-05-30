@@ -11,12 +11,13 @@ on:
     - ad
 #  schedule:
 #    - cron: 0 8 * * 5
- # watch:
- #   types: [started]
+  watch:
+    types: [started]
 
 jobs:
   build:
     runs-on: ubuntu-18.04
+    if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
     - name: Checkout
@@ -25,16 +26,15 @@ jobs:
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        #sudo apt-get update
+        sudo apt-get update
         sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd \
         cpio git python-docutils gettext automake autopoint texinfo build-essential help2man \
-        pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev
+        pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev gcc-multilib
     - name: Clone source code
       run: |
         git clone --depth=3 --branch=ad https://github.com/896660689/rt-n56u.git /opt/rt-n56u
         cd /opt/rt-n56u/toolchain-mipsel
-        wget https://github.com/896660689/padavan-toolchain/releases/download/0509/toolchain-3.4.x.tar.gz
-        tar -zxvf toolchain-3.4.x.tar.gz -C /opt/rt-n56u/toolchain-mipsel
+        sh dl_toolchain.sh
         mkdir -p /opt/images/
     - name: Build Firmware
       env:
@@ -85,7 +85,7 @@ jobs:
         #echo "自定义项=y" >> .config
         #########################################################################################
         sudo ./clear_tree
-        sudo ./build_firmware_modify $TNAME
+        sudo ./build_firmware_modify $TNAME 0
         sudo mv -f images/*.trx /opt/images/
     - name : Upload packages
       uses: actions/upload-artifact@master
