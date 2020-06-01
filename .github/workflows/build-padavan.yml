@@ -7,7 +7,7 @@ on:
   push:
     tags:
     - 'v*'
-  branches: 
+#  branches: 
     - ad
 #  schedule:
 #    - cron: 0 8 * * 5
@@ -17,6 +17,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-18.04
+    if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
     - name: Checkout
