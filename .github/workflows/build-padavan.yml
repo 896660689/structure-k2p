@@ -87,9 +87,9 @@ jobs:
         #sed -i '/自定义项/d' .config
         #echo "自定义项=y" >> .config
         #########################################################################################
-        ./clear_tree
-        ./build_firmware_modify $TNAME
-        mv -f images/*.trx /opt/images/
+        sudo ./clear_tree
+        sudo ./build_firmware_modify $TNAME
+        sudo mv -f images/*.trx /opt/images/
     - name : Upload packages
       uses: actions/upload-artifact@master
       if: always()
