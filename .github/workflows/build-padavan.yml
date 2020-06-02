@@ -35,8 +35,7 @@ jobs:
       run: |
         git clone --depth=1 --branch=ad https://github.com/896660689/rt-n56u.git /opt/rt-n56u
         cd /opt/rt-n56u/toolchain-mipsel
-        wget https://github.com/896660689/padavan-toolchain/releases/download/200601/toolchain-3.4.x.tar.gz
-        tar -zxvf toolchain-3.4.x.tar.gz -C /opt/rt-n56u/toolchain-mipsel
+        sh dl_toolchain.sh
         mkdir -p /opt/images/
     - name: Build Firmware
       env:
